@@ -4,7 +4,7 @@
 
 它不是一个「关键词→回复」插件，而是让机器人在**合适的时候自己接一句话**：
 
-1. 每条消息先过触发范围：群聊 / 私聊开关，用户与群的白名单、黑名单；
+1. 私聊一律跳过；群聊消息先过触发范围：群开关，用户与群的白名单、黑名单；
 2. 再用消息**频次粗筛**：太冷清、正在刷屏都不打扰，也不花 token；
 3. 只有落在灰区的消息串才问一次模型「现在插话合适吗」，合适就回一句；
 4. 同一串消息判过就复用结论（见 ``context_judge.VerdictCache``）；
@@ -339,10 +339,11 @@ class SmartReplyPlugin(Star):
             group_id = str(event.get_group_id() or "")
             is_group = bool(group_id)
 
-            # 群聊、私聊开关
-            if is_group and not self._bool("enable_group", True):
+            # 只在群聊生效：私聊被框架判定为「被点名」，进来必然触发，
+            # 接话会插在你和机器人的正常对话前，所以私聊一律不参与。
+            if not is_group:
                 return
-            if not is_group and not self._bool("enable_private", True):
+            if not self._bool("enable_group", True):
                 return
 
             # 机器人自己不发；用户 / 群按各自的触发范围过滤

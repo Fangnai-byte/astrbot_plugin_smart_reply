@@ -11,12 +11,6 @@
     "type": "bool",
     "default": true
   },
-  "enable_private": {
-    "description": "在私聊生效",
-    "hint": "关闭后私聊里不再自动接话。默认关闭：私聊一般不主动插话，需要时再打开。",
-    "type": "bool",
-    "default": false
-  },
   "ignore_bot": {
     "description": "忽略机器人自己的消息",
     "hint": "默认开启，避免机器人自问自答形成死循环。",
@@ -53,7 +47,7 @@
   },
   "user_target_mode": {
     "description": "用户触发范围",
-    "hint": "设置为「仅白名单」时，只有白名单里的人会触发（含私聊与群聊发言）。",
+    "hint": "设置为「仅白名单」时，只有白名单里的人会触发（私聊不参与，只在群聊里判断）。",
     "type": "string",
     "options": [
       "off",
