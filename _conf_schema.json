@@ -1,49 +1,19 @@
 {
-  "rules": {
-    "description": "回复规则",
-    "hint": "每条一行，格式：触发词，回复内容，图片，冷却秒数，生效群号，生效QQ号（后五项可省略）。例：姆唔，姆唔，tu_1 ｜ 签到，签到成功，，0，123456 只在 123456 群里生效 ｜ 图片只写图名即可，自动在图片目录里找。也支持 JSON 数组写法。",
-    "type": "list",
-    "default": []
-  },
-  "match_type": {
-    "description": "默认匹配方式",
-    "hint": "contains=消息里包含触发词（推荐）；exact=完全相等；regex=按正则匹配。单条规则可在 JSON 写法里单独指定。",
-    "type": "string",
-    "default": "contains"
-  },
-  "cooldown_seconds": {
-    "description": "默认冷却时间（秒）",
-    "hint": "同一条规则触发后，在冷却时间内不再重复发送，防止刷屏。0 表示不限制。默认 30 秒。",
-    "type": "int",
-    "default": 30
-  },
-  "cooldown_scope": {
-    "description": "冷却范围",
-    "hint": "group=每个群各自冷却（推荐）；user=每个用户各自冷却；global=全局共用一份冷却。",
-    "type": "string",
-    "default": "group"
-  },
-  "cooldown_hint": {
-    "description": "冷却中的提示语",
-    "hint": "留空则冷却期间静默不回复。填写后冷却期间只提示一次，例如：别急嘛，等会儿再说。",
-    "type": "string",
-    "default": ""
-  },
-  "image_dir": {
-    "description": "图片目录",
-    "hint": "规则里只写图片名时，到这个目录里找（自动补 .jpg/.png/.gif 等扩展名）。默认 /root/AstrBot/data/workspaces/tu。",
-    "type": "string",
-    "default": "/root/AstrBot/data/workspaces/tu"
+  "enabled": {
+    "description": "启用自动回复",
+    "hint": "总开关。关闭后本插件完全不参与，连消息记录都不统计。",
+    "type": "bool",
+    "default": true
   },
   "enable_group": {
     "description": "在群里生效",
-    "hint": "关闭后群聊里不再触发。",
+    "hint": "关闭后群聊里不再自动接话。",
     "type": "bool",
     "default": true
   },
   "enable_private": {
     "description": "在私聊生效",
-    "hint": "关闭后私聊里不再触发。",
+    "hint": "关闭后私聊里不再自动接话（私聊本身还有下面的单独开关）。",
     "type": "bool",
     "default": true
   },
@@ -53,55 +23,71 @@
     "type": "bool",
     "default": true
   },
-  "ignore_user_ids": {
-    "description": "不触发回复的 QQ 号",
-    "hint": "这些人的消息不会触发任何规则，逗号或列表形式。",
-    "type": "list",
-    "default": []
-  },
-  "ignore_group_ids": {
-    "description": "不触发回复的 QQ 群号",
-    "hint": "这些群里不会触发任何规则，逗号或列表形式。",
-    "type": "list",
-    "default": []
-  },
   "group_target_mode": {
     "description": "群聊触发范围",
-    "hint": "设置为「仅白名单」时，只有白名单里的群触发（白名单为空则群里一律不触发）；黑名单优先级最高。",
+    "hint": "设置为「仅白名单」时，只有白名单里的群会触发自动回复（白名单为空则群里一律不触发）；黑名单优先级最高。",
     "type": "string",
-    "options": ["off", "whitelist", "blacklist"],
-    "labels": ["不限制", "仅白名单", "仅黑名单"],
+    "options": [
+      "off",
+      "whitelist",
+      "blacklist"
+    ],
+    "labels": [
+      "不限制",
+      "仅白名单",
+      "仅黑名单"
+    ],
     "default": "off"
   },
   "group_whitelist": {
     "description": "群白名单",
-    "hint": "只有这些群会触发回复，逗号或列表形式。仅在触发范围为「仅白名单」时生效。",
+    "hint": "只有这些群会触发，逗号或列表形式。仅在触发范围为「仅白名单」时生效。",
     "type": "list",
     "default": []
   },
   "group_blacklist": {
     "description": "群黑名单",
-    "hint": "这些群不触发回复，逗号或列表形式。任何模式下都生效，与「不触发回复的 QQ 群号」等效。",
+    "hint": "这些群不触发，逗号或列表形式。任何模式下都生效，与「不触发的 QQ 群号」等效。",
     "type": "list",
     "default": []
   },
   "user_target_mode": {
     "description": "用户触发范围",
-    "hint": "设置为「仅白名单」时，只有白名单里的人触发（包含私聊与群聊发言）。",
+    "hint": "设置为「仅白名单」时，只有白名单里的人会触发（含私聊与群聊发言）。",
     "type": "string",
-    "options": ["off", "whitelist", "blacklist"],
-    "labels": ["不限制", "仅白名单", "仅黑名单"],
+    "options": [
+      "off",
+      "whitelist",
+      "blacklist"
+    ],
+    "labels": [
+      "不限制",
+      "仅白名单",
+      "仅黑名单"
+    ],
     "default": "off"
   },
   "user_whitelist": {
     "description": "用户白名单",
-    "hint": "只有这些 QQ 号会触发回复，逗号或列表形式。仅在触发范围为「仅白名单」时生效，白名单为空则一律不触发。",
+    "hint": "只有这些 QQ 号会触发，逗号或列表形式。仅在触发范围为「仅白名单」时生效，白名单为空则一律不触发。",
     "type": "list",
     "default": []
   },
   "user_blacklist": {
     "description": "用户黑名单",
-    "hint": "这些 QQ 号不触发回复，逗号或列表形式。任何模式下都生效，与「不触发回复的 QQ 号」等效。",
+    "hint": "这些 QQ 号不触发，逗号或列表形式。任何模式下都生效，与「不触发的 QQ 号」等效。",
+    "type": "list",
+    "default": []
+  },
+  "ignore_user_ids": {
+    "description": "不触发的 QQ 号",
+    "hint": "这些人的消息不会触发自动回复，等效于追加到用户黑名单，旧配置照旧生效。",
+    "type": "list",
+    "default": []
+  },
+  "ignore_group_ids": {
+    "description": "不触发的 QQ 群号",
+    "hint": "这些群里不会触发自动回复，等效于追加到群黑名单，旧配置照旧生效。",
     "type": "list",
     "default": []
   },
@@ -111,151 +97,121 @@
     "type": "bool",
     "default": true
   },
-  "dedup_enabled": {
-    "description": "上面已有触发词就不再回复",
-    "hint": "开启后，如果同一条触发词刚刚在上面的消息里出现过，就不再重复发送。",
-    "type": "bool",
-    "default": true
-  },
-  "dedup_window": {
-    "description": "往上检查几条消息",
-    "hint": "1=只看紧邻的上一条（推荐）；3=往上三条内有触发词就跳过。",
-    "type": "int",
-    "default": 1
-  },
-  "dedup_seconds": {
-    "description": "去重时间范围（秒）",
-    "hint": "只统计这么多秒以内的上面消息，0 表示不限时间。",
-    "type": "int",
-    "default": 0
-  },
-  "dedup_same_user_only": {
-    "description": "只算同一个人说的",
-    "hint": "默认关闭：上面谁说过同样的触发词都算。开启后，只有同一个人上面说过才跳过。",
-    "type": "bool",
-    "default": false
-  },
-  "context_judge_enabled": {
-    "description": "语境判断回复（实验）",
-    "hint": "开启后，一条消息没命中任何关键词时，会先按聊天频率粗筛，只有「不冷清也没刷屏」的灰区才问一次模型「现在插话合适吗」，合适就回一句。会消耗额度，已做结果缓存与被无视自动降频。",
-    "type": "bool",
-    "default": false
-  },
-  "ctx_window_seconds": {
-    "description": "粗筛时间窗口（秒）",
+  "window_seconds": {
+    "description": "频次统计时间窗口（秒）",
     "hint": "只统计最近这么多秒的消息条数，用来判断冷清 / 刷屏。",
     "type": "int",
     "default": 120
   },
-  "ctx_min_msgs": {
+  "min_msgs": {
     "description": "进入判断的最少消息数",
     "hint": "窗口内消息少于这个数（太冷清）就直接不插话，不问模型。",
     "type": "int",
     "default": 3
   },
-  "ctx_spam_msgs": {
+  "spam_msgs": {
     "description": "刷屏阈值（条）",
     "hint": "窗口内消息达到这个数就当作刷屏，先不插话；0 表示不判断刷屏。",
     "type": "int",
     "default": 0
   },
-  "ctx_probe_msgs": {
+  "probe_msgs": {
     "description": "给模型看的消息条数",
     "hint": "问模型时附带最近几条消息，越少越省钱。推荐 8-15。",
     "type": "int",
     "default": 12
   },
-  "ctx_level_step": {
-    "description": "每次降频抬高几条门槛",
-    "hint": "被无视一次降频一档，每档让「进入判断的最少消息数」再抬高这么多。",
-    "type": "int",
-    "default": 2
+  "private_enabled": {
+    "description": "私聊也做判断",
+    "hint": "默认关闭：判断只在群里生效，私聊一般不主动插话。",
+    "type": "bool",
+    "default": false
   },
-  "ctx_cache_ttl": {
+  "cache_ttl": {
     "description": "判断结果缓存时长（秒）",
     "hint": "同一串消息在这么多秒内只问一次模型，其余直接复用结论。",
     "type": "int",
     "default": 180
   },
-  "ctx_cache_span": {
+  "cache_span": {
     "description": "缓存签名取几条消息",
     "hint": "用最近这几条消息的发送人+内容生成指纹，指纹相同就视为同一串消息。",
     "type": "int",
     "default": 8
   },
-  "ctx_min_interval": {
-    "description": "同群两次判断最小间隔（秒）",
+  "min_interval": {
+    "description": "同会话两次判断最小间隔（秒）",
     "hint": "防止一个群连续触发判断任务；0 表示不限制。",
     "type": "int",
     "default": 20
   },
-  "ctx_ack_seconds": {
+  "cooldown_seconds": {
+    "description": "自动回复基础冷却（秒）",
+    "hint": "两次自动回复之间的基础间隔，实际冷却会按降频档位放大。",
+    "type": "int",
+    "default": 120
+  },
+  "ack_seconds": {
     "description": "等接话的秒数",
     "hint": "回复后这么多秒内没人说话，就算一次「被无视」。",
     "type": "int",
     "default": 60
   },
-  "ctx_ignore_limit": {
+  "ignore_limit": {
     "description": "连续被无视几次开始降频",
     "hint": "达到次数后启动降频：门槛变高、冷却变长，有人接话立刻恢复。",
     "type": "int",
     "default": 2
   },
-  "ctx_max_level": {
+  "max_level": {
     "description": "最高降频档位",
     "hint": "降频最多升到第几档，防止一直被无视后彻底哑掉或彻底放开。",
     "type": "int",
     "default": 4
   },
-  "ctx_backoff_base": {
+  "level_step": {
+    "description": "每档抬高几条门槛",
+    "hint": "每升一档降频，「进入判断的最少消息数」再抬高这么多。",
+    "type": "int",
+    "default": 2
+  },
+  "backoff_base": {
     "description": "降频冷却倍数底数",
     "hint": "每升一档，冷却时间乘以这个数。2 表示冷却按 2 倍、4 倍、8 倍增长。",
     "type": "float",
     "default": 2.0
   },
-  "ctx_backoff_cap": {
+  "backoff_cap": {
     "description": "降频冷却倍数上限",
     "hint": "冷却最多放大到这个倍数，防止被无视几次就长期不出声。",
     "type": "float",
     "default": 8.0
   },
-  "ctx_cooldown_seconds": {
-    "description": "语境回复冷却（秒）",
-    "hint": "语境回复之间的基础间隔，实际冷却会按降频档位放大。",
-    "type": "int",
-    "default": 120
-  },
-  "ctx_reply_max_chars": {
-    "description": "语境回复最大字数",
+  "reply_max_chars": {
+    "description": "自动回复最大字数",
     "hint": "模型给出的回复超过这个长度会被截断。",
     "type": "int",
     "default": 120
   },
-  "ctx_private_enabled": {
-    "description": "私聊也做语境判断",
-    "hint": "默认关闭：语境判断只在群里生效，私聊一般不需要主动插话。",
-    "type": "bool",
-    "default": false
-  },
-  "ctx_bot_name": {
+  "bot_name": {
     "description": "机器人名字",
     "hint": "写进提示词，让模型知道自己是谁。留空按「机器人」处理。",
     "type": "string",
     "default": ""
   },
-  "ctx_fallback_reply": {
+  "fallback_reply": {
     "description": "没有内容时的兜底回复",
     "hint": "模型只回了 YES 没给内容时，用这句话回；留空则这种情况不发送。",
     "type": "string",
     "default": ""
   },
-  "ctx_prompt": {
+  "judge_prompt": {
     "description": "判断用提示词模板",
     "hint": "留空用内置模板。可用占位符：{messages} 聊天记录、{bot_name} 机器人名字、{session} 群聊/私聊。要求模型只输出一行 YES / NO / YES|回复内容。",
     "type": "text",
     "default": ""
   },
-  "ctx_system_prompt": {
+  "judge_system_prompt": {
     "description": "判断用系统提示词",
     "hint": "留空用内置提示词。",
     "type": "text",

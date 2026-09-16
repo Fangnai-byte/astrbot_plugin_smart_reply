@@ -1,8 +1,8 @@
 name: astrbot_plugin_smart_reply
 display_name: Smart Reply (智能自动回复)
-desc: 只在指定群触发的自动回复：监测到指定内容就发送指定内容，可附带本地图片或网络图片，带冷却防刷屏；支持包含/精确/正则匹配、群与用户的白名单/黑名单、规则级生效范围；可选语境判断，先按消息频次粗筛，灰区才问一次模型，同一串消息判过即复用，被无视自动降频
-help: 先在插件配置里把 group_target_mode 设为 whitelist 并填上群号，再逐条添加规则，格式「触发词，回复内容，图片，冷却秒数，生效群号，生效QQ号」，后四项可省略；例如「姆唔，姆唔，tu_1」表示监测到「姆唔」就回复「姆唔」并附上图片 tu_1。语境判断默认关闭，需要时打开 context_judge_enabled。
-version: 1.0.0
+desc: 没有关键词表，机器人在合适的时机自己接一句话：先按触发范围过滤群与用户，再用消息频次粗筛，冷清与刷屏都不打扰也不花 token，只有灰区才问一次模型该不该插话；同一串消息判过即复用，被无视自动降频，有人接话立刻恢复
+help: 先在插件配置里把 group_target_mode 设为 whitelist 并填上群号，其余群就不参与；再按需要调 min_msgs（太冷清不插话）、spam_msgs（刷屏不插话）、cooldown_seconds（回复间隔）。回复内容由模型自己生成，可用 judge_prompt 自定义提示词（占位符 {messages} / {bot_name} / {session}），模型只回 YES 没内容时用 fallback_reply 顶上。私聊默认不参与，需要时打开 private_enabled。
+version: 2.0.0
 author: 綾地 寧々&Fangnai-byte
 repo: "https://github.com/Fangnai-byte/astrbot_plugin_smart_reply"
 support_platforms:
