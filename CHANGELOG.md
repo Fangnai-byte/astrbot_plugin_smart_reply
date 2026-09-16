@@ -1,3 +1,48 @@
+## [2.2.0] - 2026-09-16
+
+### 新增
+
+- `link_session`（默认开）：插话接回当前会话，跟主流程同一个人格、同一份记忆。此前插件用独立 session_id
+  （`<会话>:smart-reply-judge`）直调提供商，框架不会注入人格、也没有上下文，等于在空会话里另起一段对话。
+  现在从 `conversation_manager` 取 `history` 当上下文，从 `persona_manager.resolve_selected_persona` 取人格，
+  按主流程的拼法放进 `system_prompt`（`# Persona Instructions` 在前、插话任务在后），判定格式要求不会被盖掉。
+- `link_context_max_msgs`（默认 10）：只带最近这么多条历史，`0` 表示只带人格不带记忆。
+- 回复成功后用 `conversation_manager.add_message_pair` 把这次插话写回会话历史，主流程后续对话知道机器人说过这句。
+- 缓存命中跳过判定时，补一次会话 id 查询，保证写回历史不漏。
+
+### 修复
+
+- `_ask_llm` 补回真实模型调用：此前只拼好提示词、取到会话上下文，却从未调用 `provider.text_chat`，
+  未定义的 `resp` 抛出 `NameError` 被兜底 except 吞掉，表现为判定永远不回复、功能整体失效。
+  现在以当前会话 `umo` 作 `session_id` 真正发起请求，`contexts` 传历史、`system_prompt` 传人格，
+  调用失败仍按「不回复」降级。
+- 会话 id 缓存加 60 秒保鲜期：会话重置或换新对话后，旧 id 不会一直粘在 umo 上把插话写进废弃会话；
+  `umo` 为空时不再用 `smart-reply` 占位键污染缓存。
+- 判定过程加 in-flight 标记：同一会话并发进来的消息不会同时问模型，避免重复计费与重复回复。
+- `_compose_system_prompt` 独立成函数：人格拼接改用显式 `\n` 组装，避免跨行字符串被编辑写坏导致语法错误。
+- 写回会话历史失败的日志从 debug 提到 warning，并说明主流程可能不知道自己说过这句。
+- 插话人格解析加 umo 路由兜底：框架 `resolve_selected_persona` 在走 `astrbot_config_mgr` 分支时会静默回落全局配置
+  （全局 `persona_id` 为 `default`，拿不到具体人格），插话侧于是拿不到人格却毫无提示。现在解析失败或人格为空时，
+  改按 `umo` 依次读会话级 `session_service_config.persona_id` 与 `astrbot_config_mgr.get_conf(umo)` 里的 `persona_id`，
+  命中即用，且会话级配置优先于路由配置；两条路都拿不到才输出一条节流 WARN 告警（此前只写 debug，静默失败外面看不见）。
+- `_fallback_reply` 的兜底文案同样按 `reply_max_chars` 截断，不再出现兜底话术比模型回复还长、把单次字数上限撑破的情况。
+- 会话 id 缓存补条数上限与按时间淘汰（`CONV_ID_TTL`）：超过上限先清掉早已过期的条目，长期运行也不会让 `_conv_ids` 无限增长。
+
+### 测试
+
+- 新增 `tests/test_smart_reply_link.py`：桩测 `_link_session` / `_ensure_conv_id` / `_record_reply` /
+  `_ask_llm`，覆盖历史截断、上限为 0、人格拼接顺序、写回 role、`link_session=false` 降级、
+  坏数据不抛异常、缓存过期重取，以及判定确实调用模型（断言 `session_id` / `contexts` / 人格三者都到位）
+  与 provider 抛异常时降级为不回复。
+- 新增 `tests/test_persona_route.py`：覆盖框架解析成功时不兜底、框架拿空人格时按 umo 路由兜底、框架抛异常仍能兜底、
+  会话级配置优先于路由配置、两条路皆空时输出节流告警，共 5 组用例。
+
+### 说明
+
+- 兼容：`link_session=false` 退回旧行为（独立空会话、不读历史、不写回），群聊基本可用性不受影响。
+- 兼容：`no_quote` 自 2.2.0 起不再生效——发送统一走 `event.send`，恒为直接发送、不引用原消息。
+  该项仅为兼容旧配置保留，改动它不影响实际行为（README 与配置项描述已同步）。
+
 # 更新日志
 
 ## [2.1.0] - 2026-09-16
