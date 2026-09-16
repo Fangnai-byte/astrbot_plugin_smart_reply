@@ -22,11 +22,11 @@ from astrbot.api.message_components import At, Plain
 from astrbot.api.star import Context, Star
 
 try:  # 兼容包 / 非包两种加载方式
-    from .guard import (CooldownTracker, check_target, normalize_target_mode,
-                        parse_id_set)
+    from .guard import (BurstLimiter, CooldownTracker, check_target,
+                        normalize_target_mode, parse_id_set)
 except ImportError:  # pragma: no cover
-    from guard import (CooldownTracker, check_target, normalize_target_mode,
-                       parse_id_set)
+    from guard import (BurstLimiter, CooldownTracker, check_target,
+                       normalize_target_mode, parse_id_set)
 
 try:
     from .context_judge import (COARSE_LOW, JUDGE_SYSTEM_PROMPT,
@@ -47,6 +47,7 @@ class SmartReplyPlugin(Star):
         super().__init__(context)
         self.config = config or {}
         self.cooldown = CooldownTracker()
+        self.burst = BurstLimiter()
         self.freq = FreqFilter()
         self.verdicts = VerdictCache(ttl=self._cache_ttl(), span=self._cache_span())
         self.backoff = BackoffTracker(ack_seconds=self._ack_seconds(),
@@ -110,6 +111,14 @@ class SmartReplyPlugin(Star):
     def _cooldown(self) -> float:
         """自动回复的基础冷却秒数（会按降频档位放大）。"""
         return self._num("cooldown_seconds", 120, 0, 86400, float)
+
+    def _burst_window(self) -> float:
+        """限次窗口秒数：这段时间内最多回复 ``burst_limit`` 次。"""
+        return self._num("burst_window_seconds", 120, 0, 86400, float)
+
+    def _burst_limit(self) -> int:
+        """限次窗口内最多自动回复几次（0 表示不限次）。"""
+        return self._num("burst_limit", 2, 0, 100)
 
     # -------- 被无视降频 --------
     def _ack_seconds(self) -> float:
@@ -238,7 +247,7 @@ class SmartReplyPlugin(Star):
         return verdict
 
     async def _maybe_reply(self, event, session_key: str, is_group: bool):
-        """频次粗筛 → 缓存 → 问模型 → 发送。"""
+        """频次粗筛 → 冷却 / 限次 → 缓存 → 问模型 → 发送。"""
         now = time.monotonic()
         umo = str(getattr(event, "unified_msg_origin", "") or session_key)
         level = self.backoff.level(session_key, now=now)
@@ -254,10 +263,20 @@ class SmartReplyPlugin(Star):
             logger.debug(f"[SmartReply] 粗筛跳过：{info.get('reason')}")
             return
 
+        key = f"reply:{session_key}"
+        burst_window = self._burst_window()
+        burst_limit = self._burst_limit()
+        if not self.burst.allow(key, burst_limit, burst_window, now=now):
+            wait = self.burst.remaining(key, burst_limit, burst_window, now=now)
+            logger.debug(
+                f"[SmartReply] 限次跳过：{burst_window:.0f} 秒内已回复 "
+                f"{burst_limit} 次，再等 {wait:.0f} 秒"
+            )
+            return
+
         cd = self._cooldown() * cooldown_multiplier(
             level, self._backoff_base(), self._backoff_cap()
         )
-        key = f"reply:{session_key}"
         if not self.cooldown.allow(key, cd, now=now):
             logger.debug(
                 f"[SmartReply] 冷却中，剩余 {self.cooldown.remaining(key, now=now):.1f}s"
@@ -294,10 +313,15 @@ class SmartReplyPlugin(Star):
             return
 
         self.cooldown.touch(key, cd, now=now)
+        self.burst.note(key, burst_window, now=now)
         self.cooldown.cleanup(now=now)
+        self.burst.cleanup(now=now, window=burst_window)
         self.verdicts.cleanup(now=now)
         self.backoff.note_reply(session_key, now=now)
-        logger.info(f"[SmartReply] 已自动回复（{verdict.source}，降频档位 {level}）")
+        logger.info(
+            f"[SmartReply] 已自动回复（{verdict.source}，降频档位 {level}，"
+            f"{burst_window:.0f} 秒内第 {self.burst.count(key, burst_window, now=now)} 次）"
+        )
         chain = [Plain(reply)]
         if self._no_quote():
             # 直接发送，绕过框架 result_decorate 的「引用原消息」装饰

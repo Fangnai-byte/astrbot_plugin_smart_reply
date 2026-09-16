@@ -145,6 +145,18 @@
     "type": "int",
     "default": 120
   },
+  "burst_window_seconds": {
+    "description": "限次窗口（秒）",
+    "hint": "在这个时间窗口内，最多只自动回复 burst_limit 次；0 表示不启用限次。",
+    "type": "int",
+    "default": 120
+  },
+  "burst_limit": {
+    "description": "窗口内最多回复几次",
+    "hint": "例如窗口 120 秒、限次 2，就是 120 秒内最多插话 2 次；0 表示不限次。",
+    "type": "int",
+    "default": 2
+  },
   "ack_seconds": {
     "description": "等接话的秒数",
     "hint": "回复后这么多秒内没人说话，就算一次「被无视」。",

@@ -6,8 +6,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from guard import (CooldownTracker, check_target, normalize_target_mode,  # noqa: E402
-                   parse_id_set)
+from guard import (BurstLimiter, CooldownTracker, check_target,  # noqa: E402
+                   normalize_target_mode, parse_id_set)
 
 FAILED = []
 
@@ -91,6 +91,36 @@ cd.touch("g4", 60, now=T)
 cd.reset()
 check("reset 全清", cd.remaining("g3", now=T) == 0.0)
 check("reset 全清 2", cd.remaining("g4", now=T) == 0.0)
+
+print("[BurstLimiter] 滑动窗口限次")
+bl = BurstLimiter()
+check("未记录时次数为 0", bl.count("g1", 120, now=T) == 0)
+check("未记录时允许", bl.allow("g1", 2, 120, now=T) is True)
+check("未达上限剩余等待为 0", bl.remaining("g1", 2, 120, now=T) == 0.0)
+bl.note("g1", 120, now=T)
+check("记一次后次数为 1", bl.count("g1", 120, now=T) == 1)
+check("1 次后仍允许", bl.allow("g1", 2, 120, now=T + 10) is True)
+bl.note("g1", 120, now=T + 10)
+check("满 2 次后不允许", bl.allow("g1", 2, 120, now=T + 20) is False)
+check("满 2 次剩余等待=最旧一条出窗", bl.remaining("g1", 2, 120, now=T + 20) == 100.0)
+check("会话隔离：g2 不受影响", bl.allow("g2", 2, 120, now=T + 20) is True)
+check("limit=0 表示不限次", bl.allow("g1", 0, 120, now=T + 20) is True)
+check("limit=0 等待为 0", bl.remaining("g1", 0, 120, now=T + 20) == 0.0)
+check("window=0 表示不限次", bl.allow("g1", 2, 0, now=T + 20) is True)
+bl.note("g1", 0, now=T + 20)
+check("window=0 不记录", bl.count("g1", 120, now=T + 20) == 2)
+check("最早一条出窗后恢复", bl.allow("g1", 2, 120, now=T + 120) is True)
+check("全部出窗后清零", bl.count("g1", 120, now=T + 131) == 0)
+bl.note("g3", 120, now=T + 131)
+check("limit=1 只回一次", bl.allow("g3", 1, 120, now=T + 132) is False)
+check("limit=1 剩余等待", abs(bl.remaining("g3", 1, 120, now=T + 132) - 119.0) < 1e-6)
+bl.reset("g1")
+check("reset 单个键", bl.allow("g1", 2, 120, now=T + 132) is True)
+bl.cleanup(now=T + 999, window=120)
+check("cleanup 清掉空窗口", bl.count("g3", 120, now=T + 999) == 0)
+bl.note("g4", 120, now=T + 999)
+bl.reset()
+check("reset 全清", bl.count("g4", 120, now=T + 999) == 0)
 
 print("\n全部通过" if not FAILED else f"\n失败 {len(FAILED)} 项：{FAILED}")
 sys.exit(1 if FAILED else 0)
