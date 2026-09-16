@@ -107,9 +107,8 @@
 | `backoff_base` | `2.0` | 每升一档冷却乘这个数 |
 | `backoff_cap` | `8.0` | 冷却倍数上限 |
 | `reply_max_chars` | `120` | 自动回复最大字数，超出截断 |
-| `bot_name` | 空 | 写进提示词，让模型知道自己是谁 |
 | `fallback_reply` | 空 | 模型只回 `YES` 没给内容时用的话术，留空则不发送 |
-| `judge_prompt` | 空 | 判断用提示词模板，可用 `{messages}` `{bot_name}` `{session}` |
+| `judge_prompt` | 空 | 判断用提示词模板，可用 `{messages}` `{session}` |
 | `judge_system_prompt` | 空 | 判断用系统提示词，留空用内置 |
 
 ## 常见配置

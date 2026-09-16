@@ -146,9 +146,6 @@ class SmartReplyPlugin(Star):
     def _reply_max_chars(self) -> int:
         return self._num("reply_max_chars", 120, 4, 500)
 
-    def _bot_name(self) -> str:
-        return str(self.config.get("bot_name", "") or "").strip() or "机器人"
-
     def _fallback_reply(self) -> str:
         """模型只说 YES 没给内容时的兜底话术；留空则不发送。"""
         return str(self.config.get("fallback_reply", "") or "").strip()
@@ -221,7 +218,6 @@ class SmartReplyPlugin(Star):
 
         prompt = build_judge_prompt(
             messages,
-            bot_name=self._bot_name(),
             session="群聊" if event.get_group_id() else "私聊",
             template=self._prompt(),
         )
@@ -242,7 +238,7 @@ class SmartReplyPlugin(Star):
         verdict = parse_judge_reply(raw, max_reply_chars=self._reply_max_chars())
         logger.debug(
             f"[SmartReply] 判断结果（{verdict.source}）→ "
-            f"{summarize(messages, self._bot_name())}"
+            f"{summarize(messages)}"
         )
         return verdict
 

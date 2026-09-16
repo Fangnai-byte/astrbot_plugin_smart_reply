@@ -199,12 +199,6 @@
     "type": "int",
     "default": 120
   },
-  "bot_name": {
-    "description": "机器人名字",
-    "hint": "写进提示词，让模型知道自己是谁。留空按「机器人」处理。",
-    "type": "string",
-    "default": ""
-  },
   "fallback_reply": {
     "description": "没有内容时的兜底回复",
     "hint": "模型只回了 YES 没给内容时，用这句话回；留空则这种情况不发送。",
@@ -213,7 +207,7 @@
   },
   "judge_prompt": {
     "description": "判断用提示词模板",
-    "hint": "留空用内置模板。可用占位符：{messages} 聊天记录、{bot_name} 机器人名字、{session} 群聊/私聊。要求模型只输出一行 YES / NO / YES|回复内容。",
+    "hint": "留空用内置模板。可用占位符：{messages} 聊天记录、{session} 群聊/私聊。要求模型只输出一行 YES / NO / YES|回复内容。",
     "type": "text",
     "default": ""
   },
