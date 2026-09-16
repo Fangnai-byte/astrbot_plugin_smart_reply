@@ -13,9 +13,9 @@
   },
   "enable_private": {
     "description": "在私聊生效",
-    "hint": "关闭后私聊里不再自动接话（私聊本身还有下面的单独开关）。",
+    "hint": "关闭后私聊里不再自动接话。默认关闭：私聊一般不主动插话，需要时再打开。",
     "type": "bool",
-    "default": true
+    "default": false
   },
   "ignore_bot": {
     "description": "忽略机器人自己的消息",
@@ -120,12 +120,6 @@
     "hint": "问模型时附带最近几条消息，越少越省钱。推荐 8-15。",
     "type": "int",
     "default": 12
-  },
-  "private_enabled": {
-    "description": "私聊也做判断",
-    "hint": "默认关闭：判断只在群里生效，私聊一般不主动插话。",
-    "type": "bool",
-    "default": false
   },
   "cache_ttl": {
     "description": "判断结果缓存时长（秒）",

@@ -70,7 +70,7 @@
 |---|---|---|
 | `enabled` | `true` | 总开关，关闭后本插件完全不参与，连消息记录都不统计 |
 | `enable_group` | `true` | 群里是否生效 |
-| `enable_private` | `true` | 私聊是否生效 |
+| `enable_private` | `false` | 私聊是否生效（默认关闭，私聊一般不主动插话） |
 | `ignore_bot` | `true` | 忽略机器人自己的消息，防死循环 |
 | `group_target_mode` | `off` | 群聊触发范围：`off` / `whitelist` / `blacklist` |
 | `group_whitelist` | `[]` | 群白名单，仅在 `whitelist` 模式下生效 |
@@ -85,7 +85,6 @@
 | `min_msgs` | `3` | 窗口内条数少于这个数算冷清，不插话也不问模型 |
 | `spam_msgs` | `0` | 窗口内条数达到这个数算刷屏；`0` 表示不判断刷屏 |
 | `probe_msgs` | `12` | 问模型时附带最近几条消息，越少越省钱，推荐 8–15 |
-| `private_enabled` | `false` | 私聊是否也做判断（默认关闭，私聊一般不主动插话） |
 | `cache_ttl` | `180` | 判断结果缓存时长（秒） |
 | `cache_span` | `8` | 算缓存指纹时取最近几条消息 |
 | `min_interval` | `20` | 同一会话两次问模型的最小间隔（秒），`0` 不限制 |

@@ -95,10 +95,6 @@ class SmartReplyPlugin(Star):
         """发给模型看最近几条消息（越少越省钱）。"""
         return self._num("probe_msgs", 12, 2, 40)
 
-    def _private_enabled(self) -> bool:
-        """私聊是否也做判断（默认关闭，私聊一般不主动插话）。"""
-        return self._bool("private_enabled", False)
-
     # -------- 复用与节流 --------
     def _cache_ttl(self) -> float:
         return self._num("cache_ttl", 180, 1, 3600, float)
@@ -244,8 +240,6 @@ class SmartReplyPlugin(Star):
     async def _maybe_reply(self, event, session_key: str, is_group: bool):
         """频次粗筛 → 缓存 → 问模型 → 发送。"""
         now = time.monotonic()
-        if not is_group and not self._private_enabled():
-            return
         umo = str(getattr(event, "unified_msg_origin", "") or session_key)
         level = self.backoff.level(session_key, now=now)
         coarse, info = self.freq.coarse(
