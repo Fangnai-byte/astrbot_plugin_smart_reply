@@ -4,7 +4,7 @@ desc: 没有关键词表，机器人在合适的时机自己接一句话：先�
 help: 先在插件配置里把 group_target_mode 设为 whitelist 并填上群号，其余群就不参与；再按需要调 min_msgs（太冷清不插话）、spam_msgs（刷屏不插话）、cooldown_seconds（回复间隔）。回复内容由模型自己生成，可用 judge_prompt 自定义提示词（占位符 {messages} / {session}），模型只回 YES 没内容时用 fallback_reply 顶上。私聊一律不参与，插件只在群里工作。插话默认接在你和机器人的同一个会话上：沿用当前人格与最近上下文，回复也会写回会话历史（link_session / link_context_max_msgs）。
 version: 2.2.0
 author: 綾地 寧々&Fangnai-byte
-repo: "https://github.com/NekoHome-Studio/astrbot_plugin_smart_reply"
+repo: "https://github.com/Fangnai-byte/astrbot_plugin_smart_reply"
 support_platforms:
   - aiocqhttp
 astrbot_version: ">=v4.12.0"
